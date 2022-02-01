@@ -16,6 +16,36 @@ router.post('/celebrities/create', (req, res, next) => {
         .catch(() => res.render('celebrities/new-celebrity.hbs'));
 });
 
+// GET route to update a specific celebrity
+router.get('/celebrities/:id/edit', (req, res, next) => {
+  const { id } = req.params;
+ 
+  Celebrity.findById(id)
+    .then(celebrityToEdit => {
+      res.render("celebrities/edit-celebrity.hbs", {celebrityToEdit});
+    });
+});
+
+// POST route to update a specific celebrity
+router.post('/celebrities/:id/edit', (req, res, next) => {
+  const { id } = req.params;
+  const { name, occupation, catchPhrase } = req.body;
+ 
+  Celebrity.findByIdAndUpdate(id, { name, occupation, catchPhrase }, { new: true })
+    .then(updatedCelebrity => res.redirect(`/celebrities/${updatedCelebrity.id}`))
+    .catch(error => next(error));
+});
+
+// POST route to delete a celebrity from the database
+router.post('/celebrities/:id/delete', (req, res, next) => {
+  const { id } = req.params;
+ 
+  Celebrity.findByIdAndRemove(id)
+    .then(() => res.redirect('/celebrities'))
+    .catch(error => next(error));
+});
+
+
 // GET route to retrieve and display all the celebrities
 router.get('/celebrities', (req, res, next) => {
     Celebrity.find()
@@ -29,5 +59,17 @@ router.get('/celebrities', (req, res, next) => {
         next(error);
       });
   });
+
+// GET route for displaying the celebrity details page
+router.get('/celebrities/:id', (req, res, next) => {
+  const { id } = req.params;
+ 
+  Celebrity.findById(id)
+    .then(foundCeleb => res.render('celebrities/celebrity-details.hbs', foundCeleb))
+    .catch(err => {
+      console.log(`Error while getting a single celebrity from the  DB: ${err}`);
+      next(err);
+    });
+});
 
 module.exports = router;
