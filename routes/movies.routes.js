@@ -1,19 +1,18 @@
-// starter code in both routes/celebrities.routes.js and routes/movies.routes.js
 const router = require("express").Router();
-
+const {loggedIn, isLoggedOut} = require("../config/guard")
 const Movie = require('../models/Movie.model');
 const Celebrity = require('../models/Celebrity.model');
 
 // GET route to create a movie
-router.get('/movies/create', (req, res) => {
+router.get('/movies/create', loggedIn, (req, res) => {
     Celebrity.find()
     .then((dbCelebrities) => {
-        res.render('movies/new-movie.hbs', {dbCelebrities});
+        res.render('movies/new-movie.hbs', {dbCelebrities, userSessionActive: req.session.currentUser});
     });
 });
 
 // POST route to save a new movie to the database
-router.post('/movies/create', (req, res, next) => {
+router.post('/movies/create', loggedIn, (req, res, next) => {
     const { title, genre, plot, cast } = req.body;
     Movie.create({ title, genre, plot, cast })
         .then(() => res.redirect('/movies'))
@@ -21,7 +20,7 @@ router.post('/movies/create', (req, res, next) => {
 });
 
 // GET route to update a specific movie
-router.get('/movies/:id/edit', (req, res, next) => {
+router.get('/movies/:id/edit', loggedIn, (req, res, next) => {
   const { id } = req.params;
   let movie;
  
@@ -32,23 +31,23 @@ router.get('/movies/:id/edit', (req, res, next) => {
     .then(() => {
       Celebrity.find()
         .then(celebrities => {
-          res.render("movies/edit-movie.hbs", {movie, celebrities});
+          res.render("movies/edit-movie.hbs", {movie, celebrities, userSessionActive: req.session.currentUser});
         });
     });
 });
 
 // POST route to update a specific movie
-router.post('/movies/:id/edit', (req, res, next) => {
+router.post('/movies/:id/edit', loggedIn, (req, res, next) => {
   const { id } = req.params;
   const { title, genre, plot, cast } = req.body;
  
   Movie.findByIdAndUpdate(id, { title, genre, plot, cast }, { new: true })
-    .then(updatedMovie => res.redirect(`/movies/${updatedMovie.id}`))
+    .then(updatedMovie => res.redirect(`/movies/${updatedMovie.id}`, {userSessionActive: req.session.currentUser}))
     .catch(error => next(error));
 });
 
 // POST route to delete a movie from the database
-router.post('/movies/:id/delete', (req, res, next) => {
+router.post('/movies/:id/delete', loggedIn, (req, res, next) => {
   const { id } = req.params;
  
   Movie.findByIdAndRemove(id)
@@ -60,8 +59,7 @@ router.post('/movies/:id/delete', (req, res, next) => {
 router.get('/movies', (req, res, next) => {
     Movie.find()
       .then(allTheMoviesFromDB => {
-        console.log('Retrieved movies from DB:', allTheMoviesFromDB);
-        res.render('movies/movies.hbs', { movies: allTheMoviesFromDB });
+        res.render('movies/movies.hbs', { movies: allTheMoviesFromDB, userSessionActive: req.session.currentUser });
       })
       .catch(error => {
         console.log('Error while getting the movies from the DB: ', error);
@@ -70,12 +68,12 @@ router.get('/movies', (req, res, next) => {
   });
 
 // GET route for displaying the movie details page
-router.get('/movies/:id', (req, res, next) => {
+router.get('/movies/:id', loggedIn, (req, res, next) => {
   const { id } = req.params;
  
   Movie.findById(id)
     .populate('cast')
-    .then(foundMovie => res.render('movies/movie-details.hbs', foundMovie))
+    .then(foundMovie => res.render('movies/movie-details.hbs', {foundMovie, userSessionActive: req.session.currentUser}))
     .catch(err => {
       console.log(`Error while getting a single movie from the  DB: ${err}`);
       next(err);

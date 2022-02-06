@@ -6,5 +6,9 @@
         </li>
     {{/each}}
 </ul>
+{{#if userSessionActive}}
 <a href="/movies/create">Add movie</a>
+{{else}}
+<p><a href="/login">Login</a> to add and edit movies.</p>
+{{/if}}
 <a href="/">Go back</a>

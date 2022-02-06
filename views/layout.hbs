@@ -11,6 +11,29 @@
   </head>
 
   <body>
+    <nav>
+      <div>
+        
+        <a href="/celebrities">Celebrities</a>
+        <a href="/movies">Movies</a>
+        
+      </div>
+      <div>
+        
+        <a href="/create">Signup</a>
+        
+      </div>
+      <div>
+        
+        <a href="/login">Login</a>
+        
+        {{#if userSessionActive}}
+        <a href="/profile">My Account</a>
+        <a href="/logout">Logout</a>
+        {{/if}}
+      </div>
+    </nav>
+
     <div class="container">
       {{{body}}}
     </div>

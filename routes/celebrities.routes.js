@@ -1,15 +1,14 @@
-// starter code in both routes/celebrities.routes.js and routes/movies.routes.js
 const router = require("express").Router();
-
+const {loggedIn, isLoggedOut} = require("../config/guard")
 const Celebrity = require('../models/Celebrity.model.js');
 
 // GET route to create a celebrity
-router.get('/celebrities/create', (req, res) => {
-    res.render('celebrities/new-celebrity.hbs');
+router.get('/celebrities/create', loggedIn, (req, res) => {
+    res.render('celebrities/new-celebrity.hbs', {userSessionActive: req.session.currentUser});
 });
 
 // POST route to save a new celebrity to the database
-router.post('/celebrities/create', (req, res, next) => {
+router.post('/celebrities/create', loggedIn, (req, res, next) => {
     const { name, occupation, catchPhrase } = req.body;
     Celebrity.create({ name, occupation, catchPhrase })
         .then(() => res.redirect('/celebrities'))
@@ -17,17 +16,17 @@ router.post('/celebrities/create', (req, res, next) => {
 });
 
 // GET route to update a specific celebrity
-router.get('/celebrities/:id/edit', (req, res, next) => {
+router.get('/celebrities/:id/edit', loggedIn, (req, res, next) => {
   const { id } = req.params;
  
   Celebrity.findById(id)
     .then(celebrityToEdit => {
-      res.render("celebrities/edit-celebrity.hbs", {celebrityToEdit});
+      res.render("celebrities/edit-celebrity.hbs", {celebrityToEdit, userSessionActive: req.session.currentUser});
     });
 });
 
 // POST route to update a specific celebrity
-router.post('/celebrities/:id/edit', (req, res, next) => {
+router.post('/celebrities/:id/edit', loggedIn, (req, res, next) => {
   const { id } = req.params;
   const { name, occupation, catchPhrase } = req.body;
  
@@ -37,7 +36,7 @@ router.post('/celebrities/:id/edit', (req, res, next) => {
 });
 
 // POST route to delete a celebrity from the database
-router.post('/celebrities/:id/delete', (req, res, next) => {
+router.post('/celebrities/:id/delete', loggedIn, (req, res, next) => {
   const { id } = req.params;
  
   Celebrity.findByIdAndRemove(id)
@@ -51,7 +50,7 @@ router.get('/celebrities', (req, res, next) => {
     Celebrity.find()
       .then(allTheCelebritiesFromDB => {
         console.log('Retrieved celebrities from DB:', allTheCelebritiesFromDB);
-        res.render('celebrities/celebrities.hbs', { celebrities: allTheCelebritiesFromDB });
+        res.render('celebrities/celebrities.hbs', { celebrities: allTheCelebritiesFromDB, userSessionActive: req.session.currentUser });
       })
       .catch(error => {
         console.log('Error while getting the celebrities from the DB: ', error);
@@ -61,11 +60,11 @@ router.get('/celebrities', (req, res, next) => {
   });
 
 // GET route for displaying the celebrity details page
-router.get('/celebrities/:id', (req, res, next) => {
+router.get('/celebrities/:id', loggedIn, (req, res, next) => {
   const { id } = req.params;
  
   Celebrity.findById(id)
-    .then(foundCeleb => res.render('celebrities/celebrity-details.hbs', foundCeleb))
+    .then(foundCeleb => res.render('celebrities/celebrity-details.hbs', foundCeleb, {userSessionActive: req.session.currentUser}))
     .catch(err => {
       console.log(`Error while getting a single celebrity from the  DB: ${err}`);
       next(err);
